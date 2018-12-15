@@ -37,12 +37,12 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 		if (GUILayout.Button("ルートの点群自動検出", GUILayout.Height(22.0f))) {
 			SearchRootPoints(controller);
 		}
-		if (GUILayout.Button("Find colliders", GUILayout.Height(22.0f))) {
-			SetCollidersInChildren(controller);
-		}
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("_RootPointTbl"), new GUIContent("ルートの点群"), true);
 		GUILayout.Space(5);
 
+		if (GUILayout.Button("Find colliders", GUILayout.Height(22.0f))) {
+			SetCollidersInChildren(controller);
+		}
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("_ColliderTbl"), new GUIContent("コライダー"), true);
 
 		Titlebar("物理設定", new Color(0.7f, 1.0f, 0.7f));
@@ -230,12 +230,13 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 
 	void SearchRootPoints(SPCRJointDynamicsController controller)
     {
-        if (controller._RootTransform != null)
-        {
-            List<SPCRJointDynamicsPoint> PointList = new List<SPCRJointDynamicsPoint>();
+        if (controller._RootTransform == null)
+		{
+			controller._RootTransform = controller.transform;
+		}
+		List<SPCRJointDynamicsPoint> PointList = new List<SPCRJointDynamicsPoint>();
 			SearchRootPoints(controller._RootTransform, PointList);
-            controller._RootPointTbl = PointList.ToArray();
-        }
+			controller._RootPointTbl = PointList.ToArray();
     }
 	void SetCollidersInChildren(SPCRJointDynamicsController controller) {
 		if (controller._RootTransform != null) {
