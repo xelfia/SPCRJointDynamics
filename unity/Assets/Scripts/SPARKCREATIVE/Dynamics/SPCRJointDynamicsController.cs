@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(10000)]
-public class SPCRJointDynamicsCotroller : MonoBehaviour
+public class SPCRJointDynamicsController : MonoBehaviour
 {
     public enum ConstraintType
     {
@@ -41,7 +41,7 @@ public class SPCRJointDynamicsCotroller : MonoBehaviour
 
         public void UpdateLength()
         {
-            _Length = (_PointA.transform.position - _PointB.transform.position).magnitude;
+            _Length = Vector3.Distance(_PointA.transform.position, _PointB.transform.position);
         }
     }
 
