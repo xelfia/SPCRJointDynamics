@@ -1,0 +1,20 @@
+{
+  "name": "temporal.spcr.joint.dynamics",
+  "displayName": "SPCRJointDynamics",
+  "version": "0.0.0",
+  "unity": "2018.2",
+  "description": "SPARKCREATIVE Joint Dynamics",
+  "keywords": [
+    "Script",
+    "Voxel",
+    "Importer",
+    "Exporter"
+  ],
+  "category": "physics",
+  "dependencies": {},
+  "author": "modded by XELF originated from SPARKCREATIVE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xelfia/SPCRJointDynamics.git"
+  }
+}
