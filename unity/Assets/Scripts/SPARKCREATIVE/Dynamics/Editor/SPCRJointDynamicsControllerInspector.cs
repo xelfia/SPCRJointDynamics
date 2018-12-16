@@ -62,7 +62,7 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 				controller._Relaxation = EditorGUILayout.IntSlider("演算繰り返し回数", controller._Relaxation, 1, 16);
 
 				GUILayout.Space(8);
-				controller._IsCancelResetPhysics = EditorGUILayout.Toggle("物理リセットを拒否", controller._IsCancelResetPhysics);
+				controller._IgnorePhysicsReset = EditorGUILayout.Toggle("物理リセットを拒否", controller._IgnorePhysicsReset);
 				GUILayout.Space(8);
 				controller._IsEnableColliderCollision = EditorGUILayout.Toggle("質点とコライダーの衝突判定をする", controller._IsEnableColliderCollision);
 				GUILayout.Space(8);

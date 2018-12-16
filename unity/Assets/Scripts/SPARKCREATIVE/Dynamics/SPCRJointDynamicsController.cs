@@ -38,6 +38,16 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		public void UpdateLength() {
 			_Length = Vector3.Distance(_PointA.transform.position, _PointB.transform.position);
 		}
+		public static SPCRJointDynamicsConstraint Create(
+			ConstraintType Type, SPCRJointDynamicsPoint PointA, SPCRJointDynamicsPoint PointB) {
+			var result = new SPCRJointDynamicsConstraint {
+				_Type = Type,
+				_PointA = PointA,
+				_PointB = PointB,
+			};
+			result.UpdateLength();
+			return result;
+		}
 	}
 
 	public string Name;
@@ -56,7 +66,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 	public bool _IsEnableColliderCollision = false;
 
-	public bool _IsCancelResetPhysics = false;
+	public bool _IgnorePhysicsReset = false;
 
 	public AnimationCurve _MassScaleCurve = new AnimationCurve(new Keyframe[] { new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f) });
 	public AnimationCurve _GravityScaleCurve = new AnimationCurve(new Keyframe[] { new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f) });
@@ -110,17 +120,17 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	public bool _IsCollideBendingHorizontal = false;
 
 	[SerializeField]
-	SPCRJointDynamicsPoint[] _PointTbl = new SPCRJointDynamicsPoint[0];
+	private SPCRJointDynamicsPoint[] _PointTbl = new SPCRJointDynamicsPoint[0];
 	[SerializeField]
-	SPCRJointDynamicsConstraint[] _ConstraintsStructuralVertical = new SPCRJointDynamicsConstraint[0];
+	private SPCRJointDynamicsConstraint[] _ConstraintsStructuralVertical = new SPCRJointDynamicsConstraint[0];
 	[SerializeField]
-	SPCRJointDynamicsConstraint[] _ConstraintsStructuralHorizontal = new SPCRJointDynamicsConstraint[0];
+	private SPCRJointDynamicsConstraint[] _ConstraintsStructuralHorizontal = new SPCRJointDynamicsConstraint[0];
 	[SerializeField]
-	SPCRJointDynamicsConstraint[] _ConstraintsShear = new SPCRJointDynamicsConstraint[0];
+	private SPCRJointDynamicsConstraint[] _ConstraintsShear = new SPCRJointDynamicsConstraint[0];
 	[SerializeField]
-	SPCRJointDynamicsConstraint[] _ConstraintsBendingVertical = new SPCRJointDynamicsConstraint[0];
+	private SPCRJointDynamicsConstraint[] _ConstraintsBendingVertical = new SPCRJointDynamicsConstraint[0];
 	[SerializeField]
-	SPCRJointDynamicsConstraint[] _ConstraintsBendingHorizontal = new SPCRJointDynamicsConstraint[0];
+	private SPCRJointDynamicsConstraint[] _ConstraintsBendingHorizontal = new SPCRJointDynamicsConstraint[0];
 
 	public bool _IsLoopRootPoints = false;
 	public bool _IsComputeStructuralVertical = true;
@@ -251,8 +261,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			_IsEnableFloorCollision, _FloorHeight,
 			_IsEnableColliderCollision);
 	}
-
-	void CreateConstraintStructuralVertical(SPCRJointDynamicsPoint Point, ref List<SPCRJointDynamicsConstraint> ConstraintList) {
+	private void CreateConstraintStructuralVertical(SPCRJointDynamicsPoint Point, List<SPCRJointDynamicsConstraint> ConstraintList) {
 		for (int i = 0; i < Point.transform.childCount; ++i) {
 			var child = Point.transform.GetChild(i);
 			var child_point = child.GetComponent<SPCRJointDynamicsPoint>();
@@ -261,15 +270,11 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 				var LocalPosition = Point.transform.InverseTransformPoint(Point._RefChildPoint.transform.position);
 				Point._BoneAxis = LocalPosition.normalized;
 
-				var Constraint = new SPCRJointDynamicsConstraint {
-					_Type = ConstraintType.Structural_Vertical,
-					_PointA = Point,
-					_PointB = child_point
-				};
-				Constraint.UpdateLength();
+				var Constraint = SPCRJointDynamicsConstraint.Create(
+					 ConstraintType.Structural_Vertical, Point, child_point);
 				ConstraintList.Add(Constraint);
 
-				CreateConstraintStructuralVertical(child_point, ref ConstraintList);
+				CreateConstraintStructuralVertical(child_point, ConstraintList);
 			}
 		}
 	}
@@ -313,7 +318,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
 			for (int i = 0; i < HorizontalRootCount; ++i) {
-				CreateConstraintStructuralVertical(_RootPointTbl[i], ref ConstraintList);
+				CreateConstraintStructuralVertical(_RootPointTbl[i], ConstraintList);
 			}
 			_ConstraintsStructuralVertical = ConstraintList.ToArray();
 		}
@@ -327,14 +332,14 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 					CreateConstraintHorizontal(
 						_RootPointTbl[(i + 0) % HorizontalRootCount],
 						_RootPointTbl[(i + 1) % HorizontalRootCount],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 1; ++i) {
 					CreateConstraintHorizontal(
 						_RootPointTbl[i + 0],
 						_RootPointTbl[i + 1],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			}
 			_ConstraintsStructuralHorizontal = ConstraintList.ToArray();
@@ -349,14 +354,14 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 					CreateConstraintShear(
 						_RootPointTbl[(i + 0) % HorizontalRootCount],
 						_RootPointTbl[(i + 1) % HorizontalRootCount],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 1; ++i) {
 					CreateConstraintShear(
 						_RootPointTbl[i + 0],
 						_RootPointTbl[i + 1],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			}
 			_ConstraintsShear = ConstraintList.ToArray();
@@ -369,7 +374,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			for (int i = 0; i < HorizontalRootCount; ++i) {
 				CreateConstraintBendingVertical(
 					_RootPointTbl[i],
-					ref ConstraintList);
+					ConstraintList);
 			}
 			_ConstraintsBendingVertical = ConstraintList.ToArray();
 		}
@@ -383,14 +388,14 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 					CreateConstraintBendingHorizontal(
 						_RootPointTbl[(i + 0) % HorizontalRootCount],
 						_RootPointTbl[(i + 2) % HorizontalRootCount],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 2; ++i) {
 					CreateConstraintBendingHorizontal(
 						_RootPointTbl[i + 0],
 						_RootPointTbl[i + 2],
-						ref ConstraintList);
+						ConstraintList);
 				}
 			}
 			_ConstraintsBendingHorizontal = ConstraintList.ToArray();
@@ -418,7 +423,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	}
 
 	public void ResetPhysics(float Delay) {
-		if (_IsCancelResetPhysics)
+		if (_IgnorePhysicsReset)
 			return;
 
 		_Job.Restore();
@@ -435,11 +440,10 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		}
 		return null;
 	}
-
-	void CreateConstraintHorizontal(
+	private void CreateConstraintHorizontal(
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
-		ref List<SPCRJointDynamicsConstraint> ConstraintList) {
+		List<SPCRJointDynamicsConstraint> Result) {
 		if ((PointA == null) || (PointB == null))
 			return;
 		if (PointA == PointB)
@@ -449,37 +453,26 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		var childPointB = GetChildJointDynamicsPoint(PointB);
 
 		if ((childPointA != null) && (childPointB != null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Structural_Horizontal,
-				_PointA = childPointA,
-				_PointB = childPointB
-			};
-			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Structural_Horizontal, childPointA, childPointB);
+			Result.Add(constraint);
 
-			CreateConstraintHorizontal(childPointA, childPointB, ref ConstraintList);
+			CreateConstraintHorizontal(childPointA, childPointB, Result);
 		} else if ((childPointA != null) && (childPointB == null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Structural_Horizontal,
-				_PointA = childPointA,
-				_PointB = PointB
-			};
-			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Structural_Horizontal, childPointA, PointB);
+			Result.Add(constraint);
 		} else if ((childPointA == null) && (childPointB != null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Structural_Horizontal,
-				_PointA = PointA,
-				_PointB = childPointB
-			};
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Structural_Horizontal, PointA, childPointB);
 			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			Result.Add(constraint);
 		}
 	}
 	private void CreateConstraintShear(
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
-		ref List<SPCRJointDynamicsConstraint> ConstraintList) {
+		List<SPCRJointDynamicsConstraint> ConstraintList) {
 		if ((PointA == null) || (PointB == null))
 			return;
 		if (PointA == PointB)
@@ -493,61 +486,37 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		var childPointB3 = GetChildJointDynamicsPoint(childPointB2);
 
 		if (childPointA != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = childPointA,
-				_PointB = PointB
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA, PointB);
 			ConstraintList.Add(constraint);
 		} else if (childPointA2 != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = childPointA2,
-				_PointB = PointB
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA2, PointB);
 			ConstraintList.Add(constraint);
 		} else if (childPointA3 != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = childPointA3,
-				_PointB = PointB
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA3, PointB);
 			ConstraintList.Add(constraint);
 		}
 
 		if (childPointB != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = PointA,
-				_PointB = childPointB
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB);
 			ConstraintList.Add(constraint);
 		} else if (childPointB2 != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = PointA,
-				_PointB = childPointB2
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB2);
 			ConstraintList.Add(constraint);
 		} else if (childPointB3 != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Shear,
-				_PointA = PointA,
-				_PointB = childPointB3
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB3);
 			ConstraintList.Add(constraint);
 		}
-		CreateConstraintShear(childPointA, childPointB, ref ConstraintList);
+		CreateConstraintShear(childPointA, childPointB, ConstraintList);
 	}
 	private void CreateConstraintBendingVertical(
 		SPCRJointDynamicsPoint Point,
-		ref List<SPCRJointDynamicsConstraint> ConstraintList) {
+		List<SPCRJointDynamicsConstraint> ConstraintList) {
 		if (Point.transform.childCount != 1)
 			return;
 		var childA = Point.transform.GetChild(0);
@@ -559,24 +528,20 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		var childPointB = childB.GetComponent<SPCRJointDynamicsPoint>();
 
 		if (childPointB != null) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Bending_Vertical,
-				_PointA = Point,
-				_PointB = childPointB
-			};
-			constraint.UpdateLength();
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Bending_Vertical, Point, childPointB);
 			ConstraintList.Add(constraint);
 		}
 
 		var childPointA = childA.GetComponent<SPCRJointDynamicsPoint>();
 		if (childPointA != null) {
-			CreateConstraintBendingVertical(childPointA, ref ConstraintList);
+			CreateConstraintBendingVertical(childPointA, ConstraintList);
 		}
 	}
 	private void CreateConstraintBendingHorizontal(
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
-		ref List<SPCRJointDynamicsConstraint> ConstraintList) {
+		List<SPCRJointDynamicsConstraint> Result) {
 		if ((PointA == null) || (PointB == null))
 			return;
 		if (PointA == PointB)
@@ -586,31 +551,19 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		var childPointB = GetChildJointDynamicsPoint(PointB);
 
 		if ((childPointA != null) && (childPointB != null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Bending_Horizontal,
-				_PointA = childPointA,
-				_PointB = childPointB
-			};
-			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Bending_Horizontal, childPointA, childPointB);
+			Result.Add(constraint);
 
-			CreateConstraintHorizontal(childPointA, childPointB, ref ConstraintList);
+			CreateConstraintHorizontal(childPointA, childPointB, Result);
 		} else if ((childPointA != null) && (childPointB == null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Bending_Horizontal,
-				_PointA = childPointA,
-				_PointB = PointB
-			};
-			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Bending_Horizontal, childPointA, PointB);
+			Result.Add(constraint);
 		} else if ((childPointA == null) && (childPointB != null)) {
-			var constraint = new SPCRJointDynamicsConstraint {
-				_Type = ConstraintType.Bending_Horizontal,
-				_PointA = PointA,
-				_PointB = childPointB
-			};
-			constraint.UpdateLength();
-			ConstraintList.Add(constraint);
+			var constraint = SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Bending_Horizontal, PointA, childPointB);
+			Result.Add(constraint);
 		}
 	}
 	private static bool ContainsEqualIndex(List<SPCRJointDynamicsJob.Constraint> list, SPCRJointDynamicsJob.Constraint constraint) {

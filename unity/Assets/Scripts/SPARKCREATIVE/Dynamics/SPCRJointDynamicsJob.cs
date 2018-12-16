@@ -219,7 +219,7 @@ public unsafe class SPCRJointDynamicsJob {
 		var pColliders = (Collider*)_Colliders.GetUnsafePtr();
 		var pColliderExs = (ColliderEx*)_ColliderExs.GetUnsafePtr();
 
-		int ColliderCount = _RefColliders.Length;
+		var ColliderCount = _RefColliders.Length;
 		for (int i = 0; i < ColliderCount; ++i) {
 			var pDst = pColliderExs + i;
 			var Src = _RefColliders[i];
@@ -414,13 +414,12 @@ public unsafe class SPCRJointDynamicsJob {
 			if (constraint->IsCollision == 0)
 				return;
 
-			float Friction = 0.0f;
+			var Friction = 0.0f;
 			for (int i = 0; i < ColliderCount; ++i) {
 				Collider* pCollider = pColliders + i;
 				ColliderEx* pColliderEx = pColliderExs + i;
 
-				Vector3 pointOnLine, pointOnCollider;
-				if (CollisionDetection(pCollider, pColliderEx, RWptA->Position, RWptB->Position, out pointOnLine, out pointOnCollider)) {
+				if (CollisionDetection(pCollider, pColliderEx, RWptA->Position, RWptB->Position, out Vector3 pointOnLine, out Vector3 pointOnCollider)) {
 					var Pushout = pointOnLine - pointOnCollider;
 					var PushoutDistance = Pushout.magnitude;
 
