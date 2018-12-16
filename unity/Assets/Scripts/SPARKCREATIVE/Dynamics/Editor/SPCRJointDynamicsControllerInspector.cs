@@ -265,15 +265,15 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 	}
 
 	private static SPCRJointDynamicsPoint PopNearestPoint(Vector3 Base, List<SPCRJointDynamicsPoint> Source, bool IsIgnoreY) {
-		var NearestDistance = float.MaxValue;
+		var NearestDistanceSquared = float.MaxValue;
 		var NearestIndex = -1;
 		for (int i = 0; i < Source.Count; ++i) {
 			var Direction = Source[i].transform.position - Base;
 			if (IsIgnoreY)
 				Direction.y = 0.0f;
-			var Distance = Direction.sqrMagnitude;
-			if (NearestDistance > Distance) {
-				NearestDistance = Distance;
+			var DistanceSquared = Direction.sqrMagnitude;
+			if (NearestDistanceSquared > DistanceSquared) {
+				NearestDistanceSquared = DistanceSquared;
 				NearestIndex = i;
 			}
 		}
