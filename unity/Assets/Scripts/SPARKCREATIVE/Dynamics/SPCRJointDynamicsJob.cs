@@ -232,42 +232,46 @@ public unsafe class SPCRJointDynamicsJob {
 			}
 		}
 
-		var PointUpdate = new JobPointUpdate();
-		PointUpdate.pRPoints = pRPoints;
-		PointUpdate.pRWPoints = pRWPoints;
-		PointUpdate.WindForce = WindForce;
-		PointUpdate.StepTime_x2_Half = StepTime * StepTime * 0.5f;
+		var PointUpdate = new JobPointUpdate {
+			pRPoints = pRPoints,
+			pRWPoints = pRWPoints,
+			WindForce = WindForce,
+			StepTime_x2_Half = StepTime * StepTime * 0.5f
+		};
 		_hJob = PointUpdate.Schedule(_PointCount, 8);
 
 		for (int i = 0; i < Relaxation; ++i) {
 			foreach (var constraint in _Constraints) {
-				var ConstraintUpdate = new JobConstraintUpdate();
-				ConstraintUpdate.pConstraints = (Constraint*)constraint.GetUnsafePtr();
-				ConstraintUpdate.pRPoints = pRPoints;
-				ConstraintUpdate.pRWPoints = pRWPoints;
-				ConstraintUpdate.pColliders = pColliders;
-				ConstraintUpdate.pColliderExs = pColliderExs;
-				ConstraintUpdate.ColliderCount = ColliderCount;
-				ConstraintUpdate.SpringK = SpringK;
+				var ConstraintUpdate = new JobConstraintUpdate {
+					pConstraints = (Constraint*)constraint.GetUnsafePtr(),
+					pRPoints = pRPoints,
+					pRWPoints = pRWPoints,
+					pColliders = pColliders,
+					pColliderExs = pColliderExs,
+					ColliderCount = ColliderCount,
+					SpringK = SpringK
+				};
 				_hJob = ConstraintUpdate.Schedule(constraint.Length, 8, _hJob);
 			}
 		}
 
 		if (IsEnableFloorCollision || IsEnableColliderCollision) {
-			var CollisionPoint = new JobCollisionPoint();
-			CollisionPoint.pRWPoints = pRWPoints;
-			CollisionPoint.pColliders = pColliders;
-			CollisionPoint.pColliderExs = pColliderExs;
-			CollisionPoint.ColliderCount = ColliderCount;
-			CollisionPoint.FloorHeight = FloorHeight;
-			CollisionPoint.IsEnableFloor = IsEnableFloorCollision;
-			CollisionPoint.IsEnableCollider = IsEnableColliderCollision;
+			var CollisionPoint = new JobCollisionPoint {
+				pRWPoints = pRWPoints,
+				pColliders = pColliders,
+				pColliderExs = pColliderExs,
+				ColliderCount = ColliderCount,
+				FloorHeight = FloorHeight,
+				IsEnableFloor = IsEnableFloorCollision,
+				IsEnableCollider = IsEnableColliderCollision
+			};
 			_hJob = CollisionPoint.Schedule(_PointCount, 8, _hJob);
 		}
 
-		var PointToTransform = new JobPointToTransform();
-		PointToTransform.pRPoints = pRPoints;
-		PointToTransform.pRWPoints = pRWPoints;
+		var PointToTransform = new JobPointToTransform {
+			pRPoints = pRPoints,
+			pRWPoints = pRWPoints
+		};
 		_hJob = PointToTransform.Schedule(_TransformArray, _hJob);
 	}
 
@@ -310,13 +314,12 @@ public unsafe class SPCRJointDynamicsJob {
 
 			var pRW = pRWPoints + index;
 
-			Vector3 Force = Vector3.zero;
+			var Force = Vector3.zero;
 			Force += pR->Gravity;
 			Force += WindForce;
 			Force *= StepTime_x2_Half;
 
-			Vector3 Displacement;
-			Displacement = pRW->Position - pRW->OldPosition;
+			var Displacement = pRW->Position - pRW->OldPosition;
 			Displacement += Force / pR->Mass;
 			Displacement *= pR->Resistance;
 			Displacement *= 1.0f - (pRW->Friction * pR->FrictionScale);
@@ -538,17 +541,14 @@ public unsafe class SPCRJointDynamicsJob {
 			}
 		}
 
-		void PushoutFromSphere(Vector3 Center, float Radius, ref Vector3 point) {
+		static void PushoutFromSphere(Vector3 Center, float Radius, ref Vector3 point) {
 			var direction = point - Center;
-			var sqrDirectionLength = direction.magnitude;
+			var sqrDirectionLength = direction.sqrMagnitude;
 			var radius = Radius;
-			if (sqrDirectionLength > 0.001f) {
-				if (sqrDirectionLength < radius * radius) {
-					var directionLength = Mathf.Sqrt(sqrDirectionLength);
-					var diff = radius - directionLength;
-					point = direction * diff / directionLength;
-					return;
-				}
+			if (sqrDirectionLength > 0.001f && sqrDirectionLength < radius * radius) {
+				var directionLength = Mathf.Sqrt(sqrDirectionLength);
+				var diff = radius - directionLength;
+				point = direction * diff / directionLength;
 			}
 		}
 
@@ -615,14 +615,14 @@ public unsafe class SPCRJointDynamicsJob {
 			var pR = pRPoints + index;
 			var pRW = pRWPoints + index;
 
-			transform.localRotation = Quaternion.identity * pR->LocalRotation;
+			transform.localRotation = /*Quaternion.identity * */ pR->LocalRotation;
 			if (pR->Child != -1) {
 				var pRWC = pRWPoints + pR->Child;
 				var Direction = pRWC->Position - pRW->Position;
 				if (Direction.magnitude > 0.001f) {
-					Matrix4x4 mRotate = Matrix4x4.Rotate(transform.rotation);
-					Vector3 AimVector = mRotate * pR->BoneAxis;
-					Quaternion AimRotation = Quaternion.FromToRotation(AimVector, Direction);
+					var mRotate = Matrix4x4.Rotate(transform.rotation);
+					var AimVector = mRotate * pR->BoneAxis;
+					var AimRotation = Quaternion.FromToRotation(AimVector, Direction);
 					transform.rotation = AimRotation * transform.rotation;
 				}
 			}
