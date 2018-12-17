@@ -409,7 +409,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 	public void UpdateJointDistance() {
 		for (int i = 0; i < _ConstraintsStructuralVertical.Length; ++i) {
-			_ConstraintsStructuralHorizontal[i].UpdateLength();
+			_ConstraintsStructuralVertical[i].UpdateLength();
 		}
 		for (int i = 0; i < _ConstraintsStructuralHorizontal.Length; ++i) {
 			_ConstraintsStructuralHorizontal[i].UpdateLength();
