@@ -20,23 +20,18 @@ public class SPCRJointDynamicsCollider : MonoBehaviour {
 	private float _Friction = 0.5f;
 
 	public Transform RefTransform { get; private set; }
-	public float Radius { get { return _Radius; } set => _Radius = value; }
-	public float Height { get { return _Height; } }
-	public float Friction { get { return _Friction; } }
-
-	public bool IsCapsule { get { return _Height > 0.0f; } }
-
-	private void Awake() {
-		RefTransform = transform;
-	}
-
+	public float Radius { get => _Radius; set => _Radius = value; }
+	public float Height { get => _Height; }
+	public float Friction { get => _Friction; }
+	public bool IsCapsule => _Height > 0.0f;
+	private void Awake() => RefTransform = transform;
 	private void OnDrawGizmos() {
 		Gizmos.color = Color.gray;
 		GizmoHelper.DrawCapsule(transform.position, transform.rotation, _Radius, _Height);
 	}
 }
 
-public class GizmoHelper {
+public static class GizmoHelper {
 	private static readonly Matrix4x4 r0 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.forward));
 	private static readonly Matrix4x4 r1 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(90, Vector3.forward));
 	private static readonly Matrix4x4 r2 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(-90, Vector3.forward));
