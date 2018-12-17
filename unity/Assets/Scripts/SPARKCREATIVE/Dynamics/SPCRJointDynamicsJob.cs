@@ -17,6 +17,8 @@ using UnityEngine;
 using UnityEngine.Jobs;
 
 public unsafe class SPCRJointDynamicsJob {
+	const float Epsilon = 0.001f;
+
 	public struct Point {
 		public int Parent;
 		public int Child;
@@ -106,7 +108,7 @@ public unsafe class SPCRJointDynamicsJob {
 	SPCRJointDynamicsCollider[] _RefColliders;
 	NativeArray<Collider> _Colliders;
 	NativeArray<ColliderEx> _ColliderExs;
-	JobHandle _hJob = default(JobHandle);
+	JobHandle _hJob = default;
 
 	public void Initialize(Transform RootBone, Point[] Points, Transform[] PointTransforms, Constraint[][] Constraints, SPCRJointDynamicsCollider[] Colliders) {
 		_RootBone = RootBone;
@@ -173,12 +175,12 @@ public unsafe class SPCRJointDynamicsJob {
 		_Colliders.CopyFrom(ColliderR);
 		_ColliderExs = new NativeArray<ColliderEx>(Colliders.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-		_hJob = default(JobHandle);
+		_hJob = default;
 	}
 
 	public void Uninitialize() {
 		WaitForComplete();
-		_hJob = default(JobHandle);
+		_hJob = default;
 
 		_ColliderExs.Dispose();
 		_Colliders.Dispose();
@@ -277,7 +279,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 	public void WaitForComplete() {
 		_hJob.Complete();
-		_hJob = default(JobHandle);
+		_hJob = default;
 	}
 
 	public void DrawGizmos_Points() {
@@ -457,11 +459,7 @@ public unsafe class SPCRJointDynamicsJob {
 				pointOnCollider = pColliderEx->Position;
 				pointOnLine = pointOnDirection + point1;
 
-				if ((pointOnCollider - pointOnLine).sqrMagnitude > pCollider->Radius * pCollider->Radius) {
-					return false;
-				}
-
-				return true;
+				return !((pointOnCollider - pointOnLine).sqrMagnitude > pCollider->Radius * pCollider->Radius);
 			} else {
 				var capsuleDir = pColliderEx->Direction;
 				var capsulePos = pColliderEx->Position;
@@ -499,6 +497,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 	[BurstCompile]
 	struct JobCollisionPoint : IJobParallelFor {
+
 		[NativeDisableUnsafePtrRestriction]
 		public PointReadWrite* pRWPoints;
 
@@ -532,7 +531,7 @@ public unsafe class SPCRJointDynamicsJob {
 					Collider* pCollider = pColliders + i;
 					ColliderEx* pColliderEx = pColliderExs + i;
 
-					if (pCollider->Height <= 0.0f) {
+					if (pCollider->Height <= Epsilon) {
 						PushoutFromSphere(pCollider, pColliderEx, ref pRW->Position);
 					} else {
 						PushoutFromCapsule(pCollider, pColliderEx, ref pRW->Position);
@@ -545,38 +544,35 @@ public unsafe class SPCRJointDynamicsJob {
 			var direction = point - Center;
 			var sqrDirectionLength = direction.sqrMagnitude;
 			var radius = Radius;
-			if (sqrDirectionLength > 0.001f && sqrDirectionLength < radius * radius) {
+			if (sqrDirectionLength > Epsilon && sqrDirectionLength < radius * radius) {
 				var directionLength = Mathf.Sqrt(sqrDirectionLength);
 				var diff = radius - directionLength;
 				point = direction * diff / directionLength;
 			}
 		}
 
-		void PushoutFromSphere(Collider* pCollider, ColliderEx* pColliderEx, ref Vector3 point) {
+		static void PushoutFromSphere(Collider* pCollider, ColliderEx* pColliderEx, ref Vector3 point) {
 			PushoutFromSphere(pColliderEx->Position, pCollider->Radius, ref point);
 		}
 
-		void PushoutFromCapsule(Collider* pCollider, ColliderEx* pColliderEx, ref Vector3 point) {
+		static void PushoutFromCapsule(Collider* pCollider, ColliderEx* pColliderEx, ref Vector3 point) {
 			var capsuleVec = pColliderEx->Direction;
 			var capsulePos = pColliderEx->Position;
 			var targetVec = point - capsulePos;
+			var radius = pCollider->Radius;
 			var distanceOnVec = Vector3.Dot(capsuleVec, targetVec);
 			if (distanceOnVec <= 0.0f) {
-				PushoutFromSphere(capsulePos, pCollider->Radius, ref point);
-				return;
+				PushoutFromSphere(capsulePos, radius, ref point);
 			} else if (distanceOnVec >= pCollider->Height) {
-				PushoutFromSphere(capsulePos + capsuleVec * distanceOnVec, pCollider->Radius, ref point);
-				return;
+				PushoutFromSphere(capsulePos + capsuleVec * distanceOnVec, radius, ref point);
 			} else {
 				var positionOnVec = capsulePos + (capsuleVec * distanceOnVec);
 				var pushoutVec = point - positionOnVec;
-				var sqrPushoutDistance = pushoutVec.sqrMagnitude;
-				if (sqrPushoutDistance > 0.001f) {
-					if (sqrPushoutDistance < pCollider->Radius * pCollider->Radius) {
-						var pushoutDistance = Mathf.Sqrt(sqrPushoutDistance);
-						point = positionOnVec + pushoutVec * pCollider->Radius / pushoutDistance;
-						return;
-					}
+				var distanceSquared = pushoutVec.sqrMagnitude;
+				if (distanceSquared > Epsilon &&
+					distanceSquared < radius * radius) {
+					var distance = Mathf.Sqrt(distanceSquared);
+					point = positionOnVec + pushoutVec * radius / distance;
 				}
 			}
 		}
@@ -619,7 +615,7 @@ public unsafe class SPCRJointDynamicsJob {
 			if (pR->Child != -1) {
 				var pRWC = pRWPoints + pR->Child;
 				var Direction = pRWC->Position - pRW->Position;
-				if (Direction.magnitude > 0.001f) {
+				if (Direction.magnitude > Epsilon) {
 					var mRotate = Matrix4x4.Rotate(transform.rotation);
 					var AimVector = mRotate * pR->BoneAxis;
 					var AimRotation = Quaternion.FromToRotation(AimVector, Direction);
