@@ -129,7 +129,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	[SerializeField]
 	private SPCRJointDynamicsConstraint[] _ConstraintsBendingHorizontal = new SPCRJointDynamicsConstraint[0];
 
-	public bool _IsLoopRootPoints = false;
+	public bool _WrapHorizontal = false;
 	public bool _IsComputeStructuralVertical = true;
 	public bool _IsComputeStructuralHorizontal = true;
 	public bool _IsComputeShear = false;
@@ -264,7 +264,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			_IsEnableFloorCollision, _FloorHeight,
 			_IsEnableColliderCollision);
 	}
-	private void CreateConstraintStructuralVertical(SPCRJointDynamicsPoint Point, List<SPCRJointDynamicsConstraint> ConstraintList) {
+	private void CreateConstraintStructuralVertical(SPCRJointDynamicsPoint Point, List<SPCRJointDynamicsConstraint> Result) {
 		for (int i = 0; i < Point.transform.childCount; ++i) {
 			var child = Point.transform.GetChild(i);
 			var child_point = child.GetComponent<SPCRJointDynamicsPoint>();
@@ -275,9 +275,9 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 				var Constraint = SPCRJointDynamicsConstraint.Create(
 					 ConstraintType.Structural_Vertical, Point, child_point);
-				ConstraintList.Add(Constraint);
+				Result.Add(Constraint);
 
-				CreateConstraintStructuralVertical(child_point, ConstraintList);
+				CreateConstraintStructuralVertical(child_point, Result);
 			}
 		}
 	}
@@ -330,7 +330,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		_ConstraintsStructuralHorizontal = new SPCRJointDynamicsConstraint[0];
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
-			if (_IsLoopRootPoints) {
+			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintHorizontal(
 						_RootPointTable[(i + 0) % HorizontalRootCount],
@@ -352,7 +352,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		_ConstraintsShear = new SPCRJointDynamicsConstraint[0];
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
-			if (_IsLoopRootPoints) {
+			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintShear(
 						_RootPointTable[(i + 0) % HorizontalRootCount],
@@ -386,7 +386,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		_ConstraintsBendingHorizontal = new SPCRJointDynamicsConstraint[0];
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
-			if (_IsLoopRootPoints) {
+			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintBendingHorizontal(
 						_RootPointTable[(i + 0) % HorizontalRootCount],

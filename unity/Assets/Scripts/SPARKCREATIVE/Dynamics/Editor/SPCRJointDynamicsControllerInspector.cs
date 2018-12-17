@@ -168,7 +168,7 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 				break;
 			case 4:
 				Titlebar("事前設定", new Color(1.0f, 1.0f, 0.7f));
-				controller._IsLoopRootPoints = EditorGUILayout.Toggle("拘束のループ", controller._IsLoopRootPoints);
+				controller._WrapHorizontal = EditorGUILayout.Toggle("拘束のループ", controller._WrapHorizontal);
 				GUILayout.Space(5);
 				EditorGUILayout.LabelField("=============== 拘束の有無");
 				controller._IsComputeStructuralVertical = EditorGUILayout.Toggle("拘束：垂直構造", controller._IsComputeStructuralVertical);
