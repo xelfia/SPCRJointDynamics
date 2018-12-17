@@ -35,16 +35,13 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		public SPCRJointDynamicsPoint _PointB;
 		public float _Length;
 
-		public void UpdateLength() {
-			_Length = Vector3.Distance(_PointA.transform.position, _PointB.transform.position);
-		}
+		public void UpdateLength() => _Length = Length;
+		public float Length => Vector3.Distance(_PointA.transform.position, _PointB.transform.position);
+		public SPCRJointDynamicsConstraint(ConstraintType Type, SPCRJointDynamicsPoint PointA, SPCRJointDynamicsPoint PointB)
+			=> (_Type, _PointA, _PointB) = (Type, PointA, PointB);
 		public static SPCRJointDynamicsConstraint Create(
 			ConstraintType Type, SPCRJointDynamicsPoint PointA, SPCRJointDynamicsPoint PointB) {
-			var result = new SPCRJointDynamicsConstraint {
-				_Type = Type,
-				_PointA = PointA,
-				_PointB = PointB,
-			};
+			var result = new SPCRJointDynamicsConstraint(Type, PointA, PointB);
 			result.UpdateLength();
 			return result;
 		}
@@ -53,9 +50,9 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	public string Name;
 
 	public Transform _RootTransform;
-	public SPCRJointDynamicsPoint[] _RootPointTbl = new SPCRJointDynamicsPoint[0];
+	public SPCRJointDynamicsPoint[] _RootPointTable = new SPCRJointDynamicsPoint[0];
 
-	public SPCRJointDynamicsCollider[] _ColliderTbl = new SPCRJointDynamicsCollider[0];
+	public SPCRJointDynamicsCollider[] _ColliderTable = new SPCRJointDynamicsCollider[0];
 
 	public UpdateTiming _UpdateTiming = UpdateTiming.LateUpdate;
 
@@ -97,10 +94,10 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	public float _StructuralStretchHorizontal = 1.0f;
 	public float _ShearShrink = 1.0f;
 	public float _ShearStretch = 1.0f;
-	public float _BendingingShrinkVertical = 1.0f;
-	public float _BendingingStretchVertical = 1.0f;
-	public float _BendingingShrinkHorizontal = 1.0f;
-	public float _BendingingStretchHorizontal = 1.0f;
+	public float _BendingShrinkVertical = 1.0f;
+	public float _BendingStretchVertical = 1.0f;
+	public float _BendingShrinkHorizontal = 1.0f;
+	public float _BendingStretchHorizontal = 1.0f;
 
 	public bool _IsAllStructuralShrinkVertical = false;
 	public bool _IsAllStructuralStretchVertical = true;
@@ -108,10 +105,10 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	public bool _IsAllStructuralStretchHorizontal = true;
 	public bool _IsAllShearShrink = true;
 	public bool _IsAllShearStretch = true;
-	public bool _IsAllBendingingShrinkVertical = true;
-	public bool _IsAllBendingingStretchVertical = true;
-	public bool _IsAllBendingingShrinkHorizontal = true;
-	public bool _IsAllBendingingStretchHorizontal = true;
+	public bool _IsAllBendingShrinkVertical = true;
+	public bool _IsAllBendingStretchVertical = true;
+	public bool _IsAllBendingShrinkHorizontal = true;
+	public bool _IsAllBendingStretchHorizontal = true;
 
 	public bool _IsCollideStructuralVertical = true;
 	public bool _IsCollideStructuralHorizontal = true;
@@ -120,7 +117,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	public bool _IsCollideBendingHorizontal = false;
 
 	[SerializeField]
-	private SPCRJointDynamicsPoint[] _PointTbl = new SPCRJointDynamicsPoint[0];
+	private SPCRJointDynamicsPoint[] _PointTable = new SPCRJointDynamicsPoint[0];
 	[SerializeField]
 	private SPCRJointDynamicsConstraint[] _ConstraintsStructuralVertical = new SPCRJointDynamicsConstraint[0];
 	[SerializeField]
@@ -149,15 +146,21 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	private int _MaxPointDepth = 0;
 
 	private float _WindTime;
+	public float WindFrequency = 3.0f;
 	private float _Delay;
 
 	private readonly SPCRJointDynamicsJob _Job = new SPCRJointDynamicsJob();
 
+	public void Refresh() {
+		OnDestroy();
+		Awake();
+	}
+
 	private void Awake() {
-		var PointTransforms = new Transform[_PointTbl.Length];
-		var Points = new SPCRJointDynamicsJob.Point[_PointTbl.Length];
-		for (int i = 0; i < _PointTbl.Length; ++i) {
-			var src = _PointTbl[i];
+		var PointTransforms = new Transform[_PointTable.Length];
+		var Points = new SPCRJointDynamicsJob.Point[_PointTable.Length];
+		for (int i = 0; i < _PointTable.Length; ++i) {
+			var src = _PointTable[i];
 			var rate = src._Depth / _MaxPointDepth;
 
 			PointTransforms[i] = src.transform;
@@ -202,26 +205,26 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 				Points[i].ShearShrink *= AllShrinkScale;
 			if (_IsAllShearStretch)
 				Points[i].ShearStretch *= AllStretchScale;
-			if (_IsAllBendingingShrinkVertical)
+			if (_IsAllBendingShrinkVertical)
 				Points[i].BendingShrinkVertical *= AllShrinkScale;
-			if (_IsAllBendingingStretchVertical)
+			if (_IsAllBendingStretchVertical)
 				Points[i].BendingStretchVertical *= AllStretchScale;
-			if (_IsAllBendingingShrinkHorizontal)
+			if (_IsAllBendingShrinkHorizontal)
 				Points[i].BendingShrinkHorizontal *= AllShrinkScale;
-			if (_IsAllBendingingStretchHorizontal)
+			if (_IsAllBendingStretchHorizontal)
 				Points[i].BendingStretchHorizontal *= AllStretchScale;
 		}
 
-		for (int i = 0; i < _PointTbl.Length; ++i) {
-			if (_PointTbl[i]._RefChildPoint == null)
+		for (int i = 0; i < _PointTable.Length; ++i) {
+			if (_PointTable[i]._RefChildPoint == null)
 				continue;
 
-			Points[i].Child = _PointTbl[i]._RefChildPoint._Index;
-			Points[Points[i].Child].Parent = _PointTbl[i]._Index;
+			Points[i].Child = _PointTable[i]._RefChildPoint._Index;
+			Points[Points[i].Child].Parent = _PointTable[i]._Index;
 		}
 
 		CreateConstraintTable();
-		_Job.Initialize(_RootTransform, Points, PointTransforms, _ConstraintTable, _ColliderTbl);
+		_Job.Initialize(_RootTransform, Points, PointTransforms, _ConstraintTable, _ColliderTable);
 
 		_Delay = 1.0f / 20.0f;
 	}
@@ -253,7 +256,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 		var StepTime = DeltaTime;
 		var WindForcePower = Mathf.Sin(_WindTime) * 0.5f + 0.5f;
-		_WindTime += StepTime * 3.0f;
+		_WindTime += StepTime * WindFrequency;
 
 		_Job.Execute(
 			StepTime, _WindForce * WindForcePower,
@@ -294,22 +297,22 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 	public void UpdateJointConnection() {
 		var PointAll = new List<SPCRJointDynamicsPoint>();
-		foreach (var root in _RootPointTbl) {
+		foreach (var root in _RootPointTable) {
 			PointAll.AddRange(root.GetComponentsInChildren<SPCRJointDynamicsPoint>());
 		}
-		_PointTbl = PointAll.ToArray();
-		for (int i = 0; i < _PointTbl.Length; ++i) {
-			_PointTbl[i]._Index = i;
+		_PointTable = PointAll.ToArray();
+		for (int i = 0; i < _PointTable.Length; ++i) {
+			_PointTable[i]._Index = i;
 		}
 
 		// All Points
-		var HorizontalRootCount = _RootPointTbl.Length;
+		var HorizontalRootCount = _RootPointTable.Length;
 
 		// Compute PointParameter
 		{
 			_MaxPointDepth = 0;
 			for (int i = 0; i < HorizontalRootCount; ++i) {
-				ComputePointParameter(_RootPointTbl[i], 0);
+				ComputePointParameter(_RootPointTable[i], 0);
 			}
 		}
 
@@ -318,27 +321,27 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
 			for (int i = 0; i < HorizontalRootCount; ++i) {
-				CreateConstraintStructuralVertical(_RootPointTbl[i], ConstraintList);
+				CreateConstraintStructuralVertical(_RootPointTable[i], ConstraintList);
 			}
 			_ConstraintsStructuralVertical = ConstraintList.ToArray();
 		}
 
-		// Stracturarl Horizontal
+		// Stractural Horizontal
 		_ConstraintsStructuralHorizontal = new SPCRJointDynamicsConstraint[0];
 		{
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
 			if (_IsLoopRootPoints) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintHorizontal(
-						_RootPointTbl[(i + 0) % HorizontalRootCount],
-						_RootPointTbl[(i + 1) % HorizontalRootCount],
+						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[(i + 1) % HorizontalRootCount],
 						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 1; ++i) {
 					CreateConstraintHorizontal(
-						_RootPointTbl[i + 0],
-						_RootPointTbl[i + 1],
+						_RootPointTable[i + 0],
+						_RootPointTable[i + 1],
 						ConstraintList);
 				}
 			}
@@ -352,15 +355,15 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			if (_IsLoopRootPoints) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintShear(
-						_RootPointTbl[(i + 0) % HorizontalRootCount],
-						_RootPointTbl[(i + 1) % HorizontalRootCount],
+						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[(i + 1) % HorizontalRootCount],
 						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 1; ++i) {
 					CreateConstraintShear(
-						_RootPointTbl[i + 0],
-						_RootPointTbl[i + 1],
+						_RootPointTable[i + 0],
+						_RootPointTable[i + 1],
 						ConstraintList);
 				}
 			}
@@ -373,7 +376,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			var ConstraintList = new List<SPCRJointDynamicsConstraint>();
 			for (int i = 0; i < HorizontalRootCount; ++i) {
 				CreateConstraintBendingVertical(
-					_RootPointTbl[i],
+					_RootPointTable[i],
 					ConstraintList);
 			}
 			_ConstraintsBendingVertical = ConstraintList.ToArray();
@@ -386,15 +389,15 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			if (_IsLoopRootPoints) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintBendingHorizontal(
-						_RootPointTbl[(i + 0) % HorizontalRootCount],
-						_RootPointTbl[(i + 2) % HorizontalRootCount],
+						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[(i + 2) % HorizontalRootCount],
 						ConstraintList);
 				}
 			} else {
 				for (int i = 0; i < HorizontalRootCount - 2; ++i) {
 					CreateConstraintBendingHorizontal(
-						_RootPointTbl[i + 0],
-						_RootPointTbl[i + 2],
+						_RootPointTable[i + 0],
+						_RootPointTable[i + 2],
 						ConstraintList);
 				}
 			}
@@ -465,7 +468,6 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		} else if ((childPointA == null) && (childPointB != null)) {
 			var constraint = SPCRJointDynamicsConstraint.Create(
 				ConstraintType.Structural_Horizontal, PointA, childPointB);
-			constraint.UpdateLength();
 			Result.Add(constraint);
 		}
 	}
@@ -601,8 +603,8 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 					IndexA = src._PointA._Index,
 					IndexB = src._PointB._Index,
 					Length = src._Length,
-					Shrink = _BendingingShrinkHorizontal,
-					Stretch = _BendingingStretchHorizontal,
+					Shrink = _BendingShrinkHorizontal,
+					Stretch = _BendingStretchHorizontal,
 					IsCollision = !src._PointA._IsFixed && !src._PointB._IsFixed && _IsCollideBendingHorizontal ? 1 : 0
 				};
 				PushConstraintTable(ConstraintTable, c);
@@ -643,8 +645,8 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 					IndexA = src._PointA._Index,
 					IndexB = src._PointB._Index,
 					Length = src._Length,
-					Shrink = _BendingingShrinkVertical,
-					Stretch = _BendingingStretchVertical,
+					Shrink = _BendingShrinkVertical,
+					Stretch = _BendingStretchVertical,
 					IsCollision = !src._PointA._IsFixed && !src._PointB._IsFixed && _IsCollideBendingVertical ? 1 : 0
 				};
 				PushConstraintTable(ConstraintTable, c);
@@ -676,39 +678,61 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		_Job.DrawGizmos_Points();
 
 		if (Application.isPlaying) {
-			Gizmos.color = Color.red;
 			if (_IsDebugDraw_StructuralVertical) {
+				Gizmos.color = Color.green;
 				for (int i = 0; i < _ConstraintsStructuralVertical.Length; i++) {
 					var constraint = _ConstraintsStructuralVertical[i];
-					var A = constraint._PointA._Index;
-					var B = constraint._PointB._Index;
-					_Job.DrawGizmos_Constraints(A, B);
+					if (constraint == null)
+						continue;
+					var A = constraint._PointA;
+					var B = constraint._PointB;
+					if (A != null && B != null) {
+						_Job.DrawGizmos_Constraints(A._Index, B._Index);
+					}
 				}
 			}
 			if (_IsDebugDraw_StructuralHorizontal) {
+				Gizmos.color = Color.red;
 				for (int i = 0; i < _ConstraintsStructuralHorizontal.Length; i++) {
 					var constraint = _ConstraintsStructuralHorizontal[i];
-					var A = constraint._PointA._Index;
-					var B = constraint._PointB._Index;
-					_Job.DrawGizmos_Constraints(A, B);
+					if (constraint == null)
+						continue;
+					var A = constraint._PointA;
+					var B = constraint._PointB;
+					if (A != null && B != null) {
+						_Job.DrawGizmos_Constraints(A._Index, B._Index);
+					}
 				}
 			}
 		} else {
-			Gizmos.color = Color.red;
 			if (_IsDebugDraw_StructuralVertical) {
+				Gizmos.color = Color.green;
 				for (int i = 0; i < _ConstraintsStructuralVertical.Length; i++) {
 					var constraint = _ConstraintsStructuralVertical[i];
-					var pointA = constraint._PointA.transform.position;
-					var pointB = constraint._PointB.transform.position;
-					Gizmos.DrawLine(pointA, pointB);
+					if (constraint == null)
+						continue;
+					var A = constraint._PointA;
+					var B = constraint._PointB;
+					if (A != null && B != null) {
+						var pointA = A.transform.position;
+						var pointB = B.transform.position;
+						Gizmos.DrawLine(pointA, pointB);
+					}
 				}
 			}
 			if (_IsDebugDraw_StructuralHorizontal) {
+				Gizmos.color = Color.red;
 				for (int i = 0; i < _ConstraintsStructuralHorizontal.Length; i++) {
 					var constraint = _ConstraintsStructuralHorizontal[i];
-					var pointA = constraint._PointA.transform.position;
-					var pointB = constraint._PointB.transform.position;
-					Gizmos.DrawLine(pointA, pointB);
+					if (constraint == null)
+						continue;
+					var A = constraint._PointA;
+					var B = constraint._PointB;
+					if (A != null && B != null) {
+						var pointA = A.transform.position;
+						var pointB = B.transform.position;
+						Gizmos.DrawLine(pointA, pointB);
+					}
 				}
 			}
 		}

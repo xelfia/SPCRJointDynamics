@@ -36,24 +36,25 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 
 		var controller = target as SPCRJointDynamicsController;
 
+		controller.Name = EditorGUILayout.TextField("名称", controller.Name);
+
 		CurrentTool = GUILayout.Toolbar(CurrentTool, Tools);
 
 		switch (CurrentTool) {
 			case 0:
 				Titlebar("基本設定", new Color(0.7f, 1.0f, 0.7f));
-				controller.Name = EditorGUILayout.TextField("名称", controller.Name);
 				controller._RootTransform = (Transform)EditorGUILayout.ObjectField(new GUIContent("親Transform"), controller._RootTransform, typeof(Transform), true);
 
 				if (GUILayout.Button("ルートの点群自動検出", GUILayout.Height(22.0f))) {
 					SearchRootPoints(controller);
 				}
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("_RootPointTbl"), new GUIContent("ルートの点群"), true);
+				EditorGUILayout.PropertyField(serializedObject.FindProperty("_RootPointTable"), new GUIContent($"ルートの点群 ({controller._RootPointTable.Length})"), true);
 				GUILayout.Space(5);
 
 				if (GUILayout.Button("Find colliders", GUILayout.Height(22.0f))) {
 					SetCollidersInChildren(controller);
 				}
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("_ColliderTbl"), new GUIContent("コライダー"), true);
+				EditorGUILayout.PropertyField(serializedObject.FindProperty("_ColliderTable"), new GUIContent($"コライダー ({controller._ColliderTable.Length})"), true);
 				break;
 			case 1:
 				Titlebar("物理設定", new Color(0.7f, 1.0f, 0.7f));
@@ -134,28 +135,28 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 
 				EditorGUILayout.LabelField("=============== 曲げ拘束（垂直）");
 				if (controller._IsComputeBendingVertical) {
-					controller._BendingingShrinkVertical = EditorGUILayout.Slider("伸びた時縮む力", controller._BendingingShrinkVertical, 0.0f, 1.0f);
-					controller._BendingingStretchVertical = EditorGUILayout.Slider("縮む時伸びる力", controller._BendingingStretchVertical, 0.0f, 1.0f);
+					controller._BendingShrinkVertical = EditorGUILayout.Slider("伸びた時縮む力", controller._BendingShrinkVertical, 0.0f, 1.0f);
+					controller._BendingStretchVertical = EditorGUILayout.Slider("縮む時伸びる力", controller._BendingStretchVertical, 0.0f, 1.0f);
 					GUILayout.Space(5);
 					controller._BendingShrinkVerticalScaleCurve = EditorGUILayout.CurveField("伸びた時縮む力", controller._BendingShrinkVerticalScaleCurve);
 					controller._BendingStretchVerticalScaleCurve = EditorGUILayout.CurveField("縮む時伸びる力", controller._BendingStretchVerticalScaleCurve);
 					GUILayout.Space(5);
-					controller._IsAllBendingingShrinkVertical = EditorGUILayout.Toggle("伸びた時縮む力（一括設定）", controller._IsAllBendingingShrinkVertical);
-					controller._IsAllBendingingStretchVertical = EditorGUILayout.Toggle("縮む時伸びる力（一括設定）", controller._IsAllBendingingStretchVertical);
+					controller._IsAllBendingShrinkVertical = EditorGUILayout.Toggle("伸びた時縮む力（一括設定）", controller._IsAllBendingShrinkVertical);
+					controller._IsAllBendingStretchVertical = EditorGUILayout.Toggle("縮む時伸びる力（一括設定）", controller._IsAllBendingStretchVertical);
 				} else {
 					EditorGUILayout.LabelField("※ 無効 ※");
 				}
 
 				EditorGUILayout.LabelField("=============== 曲げ拘束（水平）");
 				if (controller._IsComputeBendingHorizontal) {
-					controller._BendingingShrinkHorizontal = EditorGUILayout.Slider("伸びた時縮む力", controller._BendingingShrinkHorizontal, 0.0f, 1.0f);
-					controller._BendingingStretchHorizontal = EditorGUILayout.Slider("縮む時伸びる力", controller._BendingingStretchHorizontal, 0.0f, 1.0f);
+					controller._BendingShrinkHorizontal = EditorGUILayout.Slider("伸びた時縮む力", controller._BendingShrinkHorizontal, 0.0f, 1.0f);
+					controller._BendingStretchHorizontal = EditorGUILayout.Slider("縮む時伸びる力", controller._BendingStretchHorizontal, 0.0f, 1.0f);
 					GUILayout.Space(5);
 					controller._BendingShrinkHorizontalScaleCurve = EditorGUILayout.CurveField("伸びた時縮む力", controller._BendingShrinkHorizontalScaleCurve);
 					controller._BendingStretchHorizontalScaleCurve = EditorGUILayout.CurveField("縮む時伸びる力", controller._BendingStretchHorizontalScaleCurve);
 					GUILayout.Space(5);
-					controller._IsAllBendingingShrinkHorizontal = EditorGUILayout.Toggle("伸びた時縮む力（一括設定）", controller._IsAllBendingingShrinkHorizontal);
-					controller._IsAllBendingingStretchHorizontal = EditorGUILayout.Toggle("縮む時伸びる力（一括設定）", controller._IsAllBendingingStretchHorizontal);
+					controller._IsAllBendingShrinkHorizontal = EditorGUILayout.Toggle("伸びた時縮む力（一括設定）", controller._IsAllBendingShrinkHorizontal);
+					controller._IsAllBendingStretchHorizontal = EditorGUILayout.Toggle("縮む時伸びる力（一括設定）", controller._IsAllBendingStretchHorizontal);
 				} else {
 					EditorGUILayout.LabelField("※ 無効 ※");
 				}
@@ -256,11 +257,11 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 		}
 		var PointList = new List<SPCRJointDynamicsPoint>();
 		SearchRootPoints(controller._RootTransform, PointList);
-		controller._RootPointTbl = PointList.ToArray();
+		controller._RootPointTable = PointList.ToArray();
 	}
 	private static void SetCollidersInChildren(SPCRJointDynamicsController controller) {
 		if (controller._RootTransform != null) {
-			controller._ColliderTbl = controller._RootTransform.GetComponentsInChildren<SPCRJointDynamicsCollider>();
+			controller._ColliderTable = controller._RootTransform.GetComponentsInChildren<SPCRJointDynamicsCollider>();
 		}
 	}
 
@@ -288,11 +289,11 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 				break;
 			case UpdateJointConnectionType.SortNearPointXYZ: {
 					var SourcePoints = new List<SPCRJointDynamicsPoint>();
-					for (int i = 1; i < controller._RootPointTbl.Length; ++i) {
-						SourcePoints.Add(controller._RootPointTbl[i]);
+					for (int i = 1; i < controller._RootPointTable.Length; ++i) {
+						SourcePoints.Add(controller._RootPointTable[i]);
 					}
 					var SortedPoints = new List<SPCRJointDynamicsPoint> {
-						controller._RootPointTbl[0]
+						controller._RootPointTable[0]
 					};
 					while (SourcePoints.Count > 0) {
 						SortedPoints.Add(PopNearestPoint(
@@ -300,16 +301,16 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 							SourcePoints,
 							false));
 					}
-					controller._RootPointTbl = SortedPoints.ToArray();
+					controller._RootPointTable = SortedPoints.ToArray();
 				}
 				break;
 			case UpdateJointConnectionType.SortNearPointXZ: {
 					var SourcePoints = new List<SPCRJointDynamicsPoint>();
-					for (int i = 1; i < controller._RootPointTbl.Length; ++i) {
-						SourcePoints.Add(controller._RootPointTbl[i]);
+					for (int i = 1; i < controller._RootPointTable.Length; ++i) {
+						SourcePoints.Add(controller._RootPointTable[i]);
 					}
 					var SortedPoints = new List<SPCRJointDynamicsPoint> {
-						controller._RootPointTbl[0]
+						controller._RootPointTable[0]
 					};
 					while (SourcePoints.Count > 0) {
 						SortedPoints.Add(PopNearestPoint(
@@ -317,17 +318,17 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 							SourcePoints,
 							true));
 					}
-					controller._RootPointTbl = SortedPoints.ToArray();
+					controller._RootPointTable = SortedPoints.ToArray();
 				}
 				break;
 			case UpdateJointConnectionType.SortNearPointXYZ_FixedBothEnds: {
 					var SourcePoints = new List<SPCRJointDynamicsPoint>();
-					var EdgeB = controller._RootPointTbl[controller._RootPointTbl.Length - 1];
-					for (int i = 1; i < controller._RootPointTbl.Length - 1; ++i) {
-						SourcePoints.Add(controller._RootPointTbl[i]);
+					var EdgeB = controller._RootPointTable[controller._RootPointTable.Length - 1];
+					for (int i = 1; i < controller._RootPointTable.Length - 1; ++i) {
+						SourcePoints.Add(controller._RootPointTable[i]);
 					}
 					var SortedPoints = new List<SPCRJointDynamicsPoint> {
-						controller._RootPointTbl[0]
+						controller._RootPointTable[0]
 					};
 					while (SourcePoints.Count > 0) {
 						SortedPoints.Add(PopNearestPoint(
@@ -336,17 +337,17 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 							false));
 					}
 					SortedPoints.Add(EdgeB);
-					controller._RootPointTbl = SortedPoints.ToArray();
+					controller._RootPointTable = SortedPoints.ToArray();
 				}
 				break;
 			case UpdateJointConnectionType.SortNearPointXZ_FixedBothEnds: {
 					var SourcePoints = new List<SPCRJointDynamicsPoint>();
-					var EdgeB = controller._RootPointTbl[controller._RootPointTbl.Length - 1];
-					for (int i = 1; i < controller._RootPointTbl.Length - 1; ++i) {
-						SourcePoints.Add(controller._RootPointTbl[i]);
+					var EdgeB = controller._RootPointTable[controller._RootPointTable.Length - 1];
+					for (int i = 1; i < controller._RootPointTable.Length - 1; ++i) {
+						SourcePoints.Add(controller._RootPointTable[i]);
 					}
 					var SortedPoints = new List<SPCRJointDynamicsPoint> {
-						controller._RootPointTbl[0]
+						controller._RootPointTable[0]
 					};
 					while (SourcePoints.Count > 0) {
 						SortedPoints.Add(PopNearestPoint(
@@ -355,7 +356,7 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 							true));
 					}
 					SortedPoints.Add(EdgeB);
-					controller._RootPointTbl = SortedPoints.ToArray();
+					controller._RootPointTable = SortedPoints.ToArray();
 				}
 				break;
 		}
