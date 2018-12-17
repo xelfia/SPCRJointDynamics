@@ -298,8 +298,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 	[BurstCompile]
 	struct JobPointUpdate : IJobParallelFor {
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public PointRead* pRPoints;
 		[NativeDisableUnsafePtrRestriction]
 		public PointReadWrite* pRWPoints;
@@ -334,21 +333,17 @@ public unsafe class SPCRJointDynamicsJob {
 
 	[BurstCompile]
 	struct JobConstraintUpdate : IJobParallelFor {
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public Constraint* pConstraints;
 
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public PointRead* pRPoints;
 		[NativeDisableUnsafePtrRestriction]
 		public PointReadWrite* pRWPoints;
 
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public Collider* pColliders;
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public ColliderEx* pColliderExs;
 		[ReadOnly]
 		public int ColliderCount;
@@ -497,22 +492,16 @@ public unsafe class SPCRJointDynamicsJob {
 
 	[BurstCompile]
 	struct JobCollisionPoint : IJobParallelFor {
-
 		[NativeDisableUnsafePtrRestriction]
 		public PointReadWrite* pRWPoints;
-
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public Collider* pColliders;
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public ColliderEx* pColliderExs;
 		[ReadOnly]
 		public int ColliderCount;
-
 		[ReadOnly]
 		public float FloorHeight;
-
 		[ReadOnly]
 		public bool IsEnableFloor;
 		public bool IsEnableCollider;
@@ -531,7 +520,7 @@ public unsafe class SPCRJointDynamicsJob {
 					Collider* pCollider = pColliders + i;
 					ColliderEx* pColliderEx = pColliderExs + i;
 
-					if (pCollider->Height <= Epsilon) {
+					if (pCollider->Height <= 0.0f) {
 						PushoutFromSphere(pCollider, pColliderEx, ref pRW->Position);
 					} else {
 						PushoutFromCapsule(pCollider, pColliderEx, ref pRW->Position);
@@ -580,8 +569,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 	[BurstCompile]
 	struct JobPointToTransform : IJobParallelForTransform {
-		[ReadOnly]
-		[NativeDisableUnsafePtrRestriction]
+		[ReadOnly, NativeDisableUnsafePtrRestriction]
 		public PointRead* pRPoints;
 		[NativeDisableUnsafePtrRestriction]
 		public PointReadWrite* pRWPoints;
