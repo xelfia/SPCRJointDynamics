@@ -356,8 +356,8 @@ public unsafe class SPCRJointDynamicsJob {
 			var RptA = pRPoints + constraint->IndexA;
 			var RptB = pRPoints + constraint->IndexB;
 
-			float WeightA = RptA->Weight;
-			float WeightB = RptB->Weight;
+			var WeightA = RptA->Weight;
+			var WeightB = RptB->Weight;
 
 			if ((WeightA == 0.0) && (WeightB == 0.0))
 				return;
@@ -367,10 +367,10 @@ public unsafe class SPCRJointDynamicsJob {
 
 			var Direction = RWptB->Position - RWptA->Position;
 
-			float Distance = Direction.magnitude;
-			float Force = (Distance - constraint->Length) * SpringK;
+			var Distance = Direction.magnitude;
+			var Force = (Distance - constraint->Length) * SpringK;
 
-			bool IsShrink = Force >= 0.0f;
+			var IsShrink = Force >= 0.0f;
 			float ConstraintPower;
 			switch (constraint->Type) {
 				case SPCRJointDynamicsController.ConstraintType.Structural_Vertical:
@@ -406,9 +406,9 @@ public unsafe class SPCRJointDynamicsJob {
 			if (ConstraintPower > 0.0f) {
 				var Displacement = Direction.normalized * (Force * ConstraintPower);
 
-				float WightAB = WeightA + WeightB;
-				RWptA->Position += Displacement * WeightA / WightAB;
-				RWptB->Position -= Displacement * WeightB / WightAB;
+				var WeightAB = WeightA + WeightB;
+				RWptA->Position += Displacement * WeightA / WeightAB;
+				RWptB->Position -= Displacement * WeightB / WeightAB;
 			}
 
 			if (constraint->IsCollision == 0)
@@ -441,7 +441,7 @@ public unsafe class SPCRJointDynamicsJob {
 			RWptB->Friction = Mathf.Max(Friction, RWptB->Friction);
 		}
 
-		bool CollisionDetection(Collider* pCollider, ColliderEx* pColliderEx, Vector3 point1, Vector3 point2, out Vector3 pointOnLine, out Vector3 pointOnCollider) {
+		static bool CollisionDetection(Collider* pCollider, ColliderEx* pColliderEx, Vector3 point1, Vector3 point2, out Vector3 pointOnLine, out Vector3 pointOnCollider) {
 			if (pCollider->Height <= 0.0f) {
 				var direction = point2 - point1;
 				var directionLength = direction.magnitude;
@@ -464,8 +464,7 @@ public unsafe class SPCRJointDynamicsJob {
 				var capsulePos = pColliderEx->Position;
 				var pointDir = point2 - point1;
 
-				float t1, t2;
-				var sqrDistance = ComputeNearestPoints(capsulePos, capsuleDir, point1, pointDir, out t1, out t2, out pointOnCollider, out pointOnLine);
+				var sqrDistance = ComputeNearestPoints(capsulePos, capsuleDir, point1, pointDir, out float t1, out float t2, out pointOnCollider, out pointOnLine);
 				if (sqrDistance > pCollider->Radius * pCollider->Radius) {
 					pointOnCollider = Vector3.zero;
 					pointOnLine = Vector3.zero;
@@ -482,12 +481,12 @@ public unsafe class SPCRJointDynamicsJob {
 			}
 		}
 
-		float ComputeNearestPoints(Vector3 posP, Vector3 dirP, Vector3 posQ, Vector3 dirQ, out float tP, out float tQ, out Vector3 pointOnP, out Vector3 pointOnQ) {
+		static float ComputeNearestPoints(Vector3 posP, Vector3 dirP, Vector3 posQ, Vector3 dirQ, out float tP, out float tQ, out Vector3 pointOnP, out Vector3 pointOnQ) {
 			var n1 = Vector3.Cross(dirP, Vector3.Cross(dirQ, dirP));
 			var n2 = Vector3.Cross(dirQ, Vector3.Cross(dirP, dirQ));
 
-			tP = Vector3.Dot((posQ - posP), n2) / Vector3.Dot(dirP, n2);
-			tQ = Vector3.Dot((posP - posQ), n1) / Vector3.Dot(dirQ, n1);
+			tP = Vector3.Dot(posQ - posP, n2) / Vector3.Dot(dirP, n2);
+			tQ = Vector3.Dot(posP - posQ, n1) / Vector3.Dot(dirQ, n1);
 			pointOnP = posP + dirP * tP;
 			pointOnQ = posQ + dirQ * tQ;
 
