@@ -26,26 +26,29 @@ public class SPCRJointDynamicsCollider : MonoBehaviour {
 
 	public bool IsCapsule { get { return _Height > 0.0f; } }
 
-	private static readonly Matrix4x4 r0 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.forward));
-	private static readonly Matrix4x4 r1 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(90, Vector3.forward));
-	private static readonly Matrix4x4 r2 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(-90, Vector3.forward));
-	private static readonly Matrix4x4 r3 = Matrix4x4.Rotate(Quaternion.AngleAxis(-90, Vector3.forward));
-
 	private void Awake() {
 		RefTransform = transform;
 	}
 
 	private void OnDrawGizmos() {
 		Gizmos.color = Color.gray;
-		var position = transform.position;
+		GizmoHelper.DrawCapsule(transform.position, transform.rotation, _Radius, _Height);
+	}
+}
 
-		if (IsCapsule) {
-			var rotation = transform.rotation;
-			var halfLength = _Height * .5f;
+public class GizmoHelper {
+	private static readonly Matrix4x4 r0 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.forward));
+	private static readonly Matrix4x4 r1 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(90, Vector3.forward));
+	private static readonly Matrix4x4 r2 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up) * Quaternion.AngleAxis(-90, Vector3.forward));
+	private static readonly Matrix4x4 r3 = Matrix4x4.Rotate(Quaternion.AngleAxis(-90, Vector3.forward));
+
+	public static void DrawCapsule(Vector3 position, Quaternion rotation, float radius, float height) {
+		if (height > 0.0f) {
+			var halfLength = height * .5f;
 			var up = Vector3.up * halfLength;
 			var down = Vector3.down * halfLength;
-			var right = Vector3.right * _Radius;
-			var forward = Vector3.forward * _Radius;
+			var right = Vector3.right * radius;
+			var forward = Vector3.forward * radius;
 			var top = position + rotation * up;
 			var bottom = position + rotation * down;
 
@@ -59,26 +62,25 @@ public class SPCRJointDynamicsCollider : MonoBehaviour {
 			var topRotation = Matrix4x4.TRS(top, rotation, Vector3.one);
 			var bottomRotation = Matrix4x4.TRS(bottom, rotation, Vector3.one);
 			Gizmos.matrix = topRotation;
-			DrawWireArc(_Radius, 360);
+			DrawWireArc(radius, 360);
 			Gizmos.matrix = bottomRotation;
-			DrawWireArc(_Radius, 360);
+			DrawWireArc(radius, 360);
 
 			Gizmos.matrix = topRotation * r0;
-			DrawWireArc(_Radius, 180);
+			DrawWireArc(radius, 180);
 			Gizmos.matrix = topRotation * r1;
-			DrawWireArc(_Radius, 180);
+			DrawWireArc(radius, 180);
 			Gizmos.matrix = bottomRotation * r2;
-			DrawWireArc(_Radius, 180);
+			DrawWireArc(radius, 180);
 			Gizmos.matrix = bottomRotation * r3;
-			DrawWireArc(_Radius, 180);
+			DrawWireArc(radius, 180);
 
 			Gizmos.matrix = mOld;
 		} else {
-			Gizmos.DrawWireSphere(position, _Radius);
+			Gizmos.DrawWireSphere(position, radius);
 		}
 	}
-
-	private static void DrawWireArc(float radius, float angle) {
+	public static void DrawWireArc(float radius, float angle) {
 		var from = Vector3.forward * radius;
 		var step = Mathf.RoundToInt(angle / 15.0f);
 		for (int i = 0; i <= angle; i += step) {
