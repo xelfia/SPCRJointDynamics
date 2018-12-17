@@ -559,8 +559,7 @@ public unsafe class SPCRJointDynamicsJob {
 				var positionOnVec = capsulePos + (capsuleVec * distanceOnVec);
 				var pushoutVec = point - positionOnVec;
 				var distanceSquared = pushoutVec.sqrMagnitude;
-				if (distanceSquared > Epsilon &&
-					distanceSquared < radius * radius) {
+				if (distanceSquared > Epsilon && distanceSquared < radius * radius) {
 					var distance = Mathf.Sqrt(distanceSquared);
 					point = positionOnVec + pushoutVec * radius / distance;
 				}
