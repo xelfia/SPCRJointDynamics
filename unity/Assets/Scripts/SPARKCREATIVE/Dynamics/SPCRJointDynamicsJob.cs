@@ -91,6 +91,7 @@ public unsafe class SPCRJointDynamicsJob {
 		public float Radius;
 		public float Height;
 		public float Friction;
+		public bool IsSphere => Height <= 0.0f;
 	}
 
 	struct ColliderEx {
@@ -315,8 +316,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 			var pRW = pRWPoints + index;
 
-			var Force = Vector3.zero;
-			Force += pR->Gravity;
+			var Force = pR->Gravity;
 			Force += WindForce;
 			Force *= StepTime_x2_Half;
 
@@ -407,8 +407,9 @@ public unsafe class SPCRJointDynamicsJob {
 				var Displacement = Direction.normalized * (Force * ConstraintPower);
 
 				var WeightAB = WeightA + WeightB;
-				RWptA->Position += Displacement * WeightA / WeightAB;
-				RWptB->Position -= Displacement * WeightB / WeightAB;
+				var s = 1 / WeightAB;
+				RWptA->Position += Displacement * (WeightA * s);
+				RWptB->Position -= Displacement * (WeightB * s);
 			}
 
 			if (constraint->IsCollision == 0)
@@ -442,7 +443,7 @@ public unsafe class SPCRJointDynamicsJob {
 		}
 
 		static bool CollisionDetection(Collider* pCollider, ColliderEx* pColliderEx, Vector3 point1, Vector3 point2, out Vector3 pointOnLine, out Vector3 pointOnCollider) {
-			if (pCollider->Height <= 0.0f) {
+			if (pCollider->IsSphere) {
 				var direction = point2 - point1;
 				var directionLength = direction.magnitude;
 				direction /= directionLength;
@@ -520,7 +521,7 @@ public unsafe class SPCRJointDynamicsJob {
 					Collider* pCollider = pColliders + i;
 					ColliderEx* pColliderEx = pColliderExs + i;
 
-					if (pCollider->Height <= 0.0f) {
+					if (pCollider->IsSphere) {
 						PushoutFromSphere(pCollider, pColliderEx, ref pRW->Position);
 					} else {
 						PushoutFromCapsule(pCollider, pColliderEx, ref pRW->Position);
@@ -582,7 +583,7 @@ public unsafe class SPCRJointDynamicsJob {
 				var pRWP = pRWPoints + pR->Parent;
 				var Direction = pRW->Position - pRWP->Position;
 				var RealLength = Direction.magnitude;
-				if (RealLength > 0.001f) {
+				if (RealLength > Epsilon) {
 					pRW->PreviousDirection = Direction;
 					transform.position = pRW->Position;
 					SetRotation(index, transform);
