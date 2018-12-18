@@ -292,7 +292,7 @@ public unsafe class SPCRJointDynamicsJob {
 
 	public void DrawGizmos_Constraints(int A, int B) {
 		if (_PointTransforms == null ||
-			A <= 0 || B <= 0 || A >= _PointTransforms.Length || B >= _PointTransforms.Length)
+			A < 0 || B < 0 || A >= _PointTransforms.Length || B >= _PointTransforms.Length)
 			return;
 		Gizmos.DrawLine(_PointTransforms[A].position, _PointTransforms[B].position);
 	}
