@@ -425,6 +425,14 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		}
 	}
 
+	public void StretchBoneLength(float BoneStretchScale) {
+		for (int i = 0; i < _ConstraintsStructuralVertical.Length; ++i) {
+			var constraint = _ConstraintsStructuralVertical[i];
+			var direction = constraint._PointB.transform.position - constraint._PointA.transform.position;
+			constraint._PointB.transform.position = constraint._PointA.transform.position + direction * BoneStretchScale;
+		}
+		UpdateJointDistance();
+	}
 	public void ResetPhysics(float Delay) {
 		if (_IgnorePhysicsReset)
 			return;

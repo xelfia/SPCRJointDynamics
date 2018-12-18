@@ -30,7 +30,10 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 		new GUIContent("Constraints"),
 		new GUIContent("Debug"),
 		new GUIContent("Conditions"),
+		new GUIContent("Tools"),
 	};
+	float _BoneStretchScale = 1.0f;
+
 	public override void OnInspectorGUI() {
 		serializedObject.Update();
 
@@ -163,32 +166,38 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 				break;
 			case 3:
 				Titlebar("デバッグ表示", new Color(0.7f, 1.0f, 1.0f));
+				EditorGUILayout.BeginHorizontal();
 				GUI.color = Color.green;
-				controller._IsDebugDraw_StructuralVertical = EditorGUILayout.Toggle("垂直構造", controller._IsDebugDraw_StructuralVertical);
+				controller._IsDebugDraw_StructuralVertical = GUILayout.Toggle(controller._IsDebugDraw_StructuralVertical, "垂直構造", EditorStyles.miniButtonLeft);
 				GUI.color = Color.red;
-				controller._IsDebugDraw_StructuralHorizontal = EditorGUILayout.Toggle("水平構造", controller._IsDebugDraw_StructuralHorizontal);
+				controller._IsDebugDraw_StructuralHorizontal = GUILayout.Toggle(controller._IsDebugDraw_StructuralHorizontal, "水平構造", EditorStyles.miniButtonRight);
+				EditorGUILayout.EndHorizontal();
 				GUI.color = Color.white;
 				break;
 			case 4:
 				Titlebar("事前設定", new Color(1.0f, 1.0f, 0.7f));
-				controller._WrapHorizontal = EditorGUILayout.Toggle("拘束のループ", controller._WrapHorizontal);
+				controller._WrapHorizontal = GUILayout.Toggle(controller._WrapHorizontal, "拘束のループ", EditorStyles.miniButton);
 				GUILayout.Space(5);
-				EditorGUILayout.LabelField("=============== 拘束の有無");
-				controller._IsComputeStructuralVertical = EditorGUILayout.Toggle("拘束：垂直構造", controller._IsComputeStructuralVertical);
-				controller._IsComputeStructuralHorizontal = EditorGUILayout.Toggle("拘束：水平構造", controller._IsComputeStructuralHorizontal);
-				controller._IsComputeShear = EditorGUILayout.Toggle("拘束：せん断", controller._IsComputeShear);
-				controller._IsComputeBendingVertical = EditorGUILayout.Toggle("拘束：垂直曲げ", controller._IsComputeBendingVertical);
-				controller._IsComputeBendingHorizontal = EditorGUILayout.Toggle("拘束：水平曲げ", controller._IsComputeBendingHorizontal);
+				EditorGUILayout.LabelField("拘束の有無");
+				EditorGUILayout.BeginHorizontal();
+				controller._IsComputeStructuralVertical = GUILayout.Toggle(controller._IsComputeStructuralVertical, "垂直構造", EditorStyles.miniButtonLeft);
+				controller._IsComputeStructuralHorizontal = GUILayout.Toggle(controller._IsComputeStructuralHorizontal, "水平構造", EditorStyles.miniButtonMid);
+				controller._IsComputeShear = GUILayout.Toggle(controller._IsComputeShear, "せん断", EditorStyles.miniButtonMid);
+				controller._IsComputeBendingVertical = GUILayout.Toggle(controller._IsComputeBendingVertical, "垂直曲げ", EditorStyles.miniButtonMid);
+				controller._IsComputeBendingHorizontal = GUILayout.Toggle(controller._IsComputeBendingHorizontal, "水平曲げ", EditorStyles.miniButtonRight);
+				EditorGUILayout.EndHorizontal();
 				GUILayout.Space(5);
-				EditorGUILayout.LabelField("=============== コリジョン");
-				controller._IsCollideStructuralVertical = EditorGUILayout.Toggle("衝突：垂直構造", controller._IsCollideStructuralVertical);
-				controller._IsCollideStructuralHorizontal = EditorGUILayout.Toggle("衝突：水平構造", controller._IsCollideStructuralHorizontal);
-				controller._IsCollideShear = EditorGUILayout.Toggle("衝突：せん断", controller._IsCollideShear);
-				controller._IsCollideBendingVertical = EditorGUILayout.Toggle("衝突：垂直曲げ", controller._IsCollideBendingVertical);
-				controller._IsCollideBendingHorizontal = EditorGUILayout.Toggle("衝突：水平曲げ", controller._IsCollideBendingHorizontal);
+				EditorGUILayout.LabelField("衝突（コリジョン）");
+				EditorGUILayout.BeginHorizontal();
+				controller._IsCollideStructuralVertical = GUILayout.Toggle(controller._IsCollideStructuralVertical, "垂直構造", EditorStyles.miniButtonLeft);
+				controller._IsCollideStructuralHorizontal = GUILayout.Toggle(controller._IsCollideStructuralHorizontal, "水平構造", EditorStyles.miniButtonMid);
+				controller._IsCollideShear = GUILayout.Toggle(controller._IsCollideShear, "せん断", EditorStyles.miniButtonMid);
+				controller._IsCollideBendingVertical = GUILayout.Toggle(controller._IsCollideBendingVertical, "垂直曲げ", EditorStyles.miniButtonMid);
+				controller._IsCollideBendingHorizontal = GUILayout.Toggle(controller._IsCollideBendingHorizontal, "水平曲げ", EditorStyles.miniButtonRight);
+				EditorGUILayout.EndHorizontal();
 				GUILayout.Space(10);
 
-				if (GUILayout.Button("自動設定")) {
+				if (GUILayout.Button("自動設定（現在のルートの点群順序）")) {
 					UpdateJointConnection(controller);
 				}
 				if (GUILayout.Button("自動設定（近ポイント自動検索XYZ）")) {
@@ -216,6 +225,13 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 
 				if (GUILayout.Button("物理初期化")) {
 					controller.ResetPhysics(0.3f);
+				}
+
+				Titlebar("拡張設定", new Color(1.0f, 0.7f, 0.7f));
+				GUILayout.Space(3);
+				_BoneStretchScale = EditorGUILayout.Slider("伸縮比率", _BoneStretchScale, -5.0f, +5.0f);
+				if (GUILayout.Button("垂直方向にボーンを伸縮する")) {
+					controller.StretchBoneLength(_BoneStretchScale);
 				}
 				break;
 		}
