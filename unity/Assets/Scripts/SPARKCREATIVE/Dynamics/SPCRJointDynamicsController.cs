@@ -148,6 +148,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 	private float _WindTime;
 	public float WindFrequency = 3.0f;
 	private float _Delay;
+	public float DelayOnAwake = 15 / 60f;
 
 	private readonly SPCRJointDynamicsJob _Job = new SPCRJointDynamicsJob();
 
@@ -161,7 +162,9 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		var Points = new SPCRJointDynamicsJob.Point[_PointTable.Length];
 		for (int i = 0; i < _PointTable.Length; ++i) {
 			var src = _PointTable[i];
-			var rate = src._Depth / _MaxPointDepth;
+			var rate = _MaxPointDepth > 0
+				? src._Depth / _MaxPointDepth
+				: 0.0f;
 
 			PointTransforms[i] = src.transform;
 
@@ -226,7 +229,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		CreateConstraintTable();
 		_Job.Initialize(_RootTransform, Points, PointTransforms, _ConstraintTable, _ColliderTable);
 
-		_Delay = 1.0f / 20.0f;
+		_Delay = DelayOnAwake;
 	}
 
 	private void OnDestroy() {
