@@ -665,8 +665,7 @@ public unsafe class SPCRJointDynamicsJob {
 			if (pR->Weight > 0.0f) {
 				var pRWP = pRWPoints + pR->Parent;
 				var Direction = pRW->Position - pRWP->Position;
-				var RealLength = Direction.magnitude;
-				if (RealLength > Epsilon) {
+				if (Direction.sqrMagnitude > Epsilon * Epsilon) {
 					pRW->PreviousDirection = Direction;
 					transform.position = pRW->Position;
 					SetRotation(index, transform);
@@ -687,9 +686,8 @@ public unsafe class SPCRJointDynamicsJob {
 			if (pR->Child != -1) {
 				var pRWC = pRWPoints + pR->Child;
 				var Direction = pRWC->Position - pRW->Position;
-				if (Direction.magnitude > Epsilon) {
-					var mRotate = Matrix4x4.Rotate(transform.rotation);
-					var AimVector = mRotate * pR->BoneAxis;
+				if (Direction.sqrMagnitude > Epsilon * Epsilon) {
+					var AimVector = transform.rotation * pR->BoneAxis;
 					var AimRotation = Quaternion.FromToRotation(AimVector, Direction);
 					transform.rotation = AimRotation * transform.rotation;
 				}
