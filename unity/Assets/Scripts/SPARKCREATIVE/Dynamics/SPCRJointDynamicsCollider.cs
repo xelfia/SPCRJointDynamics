@@ -21,8 +21,8 @@ public class SPCRJointDynamicsCollider : MonoBehaviour {
 
 	public Transform RefTransform { get; private set; }
 	public float Radius { get => _Radius; set => _Radius = value; }
-	public float Height { get => _Height; }
-	public float Friction { get => _Friction; }
+	public float Height { get => _Height; set => _Height = value; }
+	public float Friction { get => _Friction; set => _Friction = value; }
 	public bool IsCapsule => _Height > 0.0f;
 	private void Awake() => RefTransform = transform;
 	private void OnDrawGizmos() {
