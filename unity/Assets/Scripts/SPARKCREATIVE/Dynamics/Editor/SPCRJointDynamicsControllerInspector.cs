@@ -39,7 +39,7 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 
 		var controller = target as SPCRJointDynamicsController;
 
-		controller.Name = EditorGUILayout.TextField("名称", controller.Name);
+		controller.Name = EditorGUILayout.DelayedTextField("名称", controller.Name);
 
 		CurrentTool = GUILayout.Toolbar(CurrentTool, Tools);
 
@@ -58,6 +58,12 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 					SetCollidersInChildren(controller);
 				}
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("_ColliderTable"), new GUIContent($"コライダー ({controller._ColliderTable.Length})"), true);
+				GUILayout.Space(5);
+
+				if (GUILayout.Button("Find grabbers", GUILayout.Height(22.0f))) {
+					SetGrabbersInChildren(controller);
+				}
+				EditorGUILayout.PropertyField(serializedObject.FindProperty("_PointGrabberTable"), new GUIContent($"グラバー ({controller._PointGrabberTable.Length})"), true);
 				break;
 			case 1:
 				Titlebar("物理設定", new Color(0.7f, 1.0f, 0.7f));
@@ -281,6 +287,11 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 	private static void SetCollidersInChildren(SPCRJointDynamicsController controller) {
 		if (controller._RootTransform != null) {
 			controller._ColliderTable = controller._RootTransform.GetComponentsInChildren<SPCRJointDynamicsCollider>();
+		}
+	}
+	private static void SetGrabbersInChildren(SPCRJointDynamicsController controller) {
+		if (controller._RootTransform != null) {
+			controller._PointGrabberTable = controller._RootTransform.GetComponentsInChildren<SPCRJointDynamicsPointGrabber>();
 		}
 	}
 

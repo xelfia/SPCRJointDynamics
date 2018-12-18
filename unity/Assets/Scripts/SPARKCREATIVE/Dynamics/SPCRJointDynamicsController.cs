@@ -54,6 +54,8 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 
 	public SPCRJointDynamicsCollider[] _ColliderTable = new SPCRJointDynamicsCollider[0];
 
+	public SPCRJointDynamicsPointGrabber[] _PointGrabberTable = new SPCRJointDynamicsPointGrabber[0];
+
 	public UpdateTiming _UpdateTiming = UpdateTiming.LateUpdate;
 
 	public int _Relaxation = 3;
@@ -227,7 +229,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		}
 
 		CreateConstraintTable();
-		_Job.Initialize(_RootTransform, Points, PointTransforms, _ConstraintTable, _ColliderTable);
+		_Job.Initialize(_RootTransform, Points, PointTransforms, _ConstraintTable, _ColliderTable, _PointGrabberTable);
 
 		_Delay = DelayOnAwake;
 	}
