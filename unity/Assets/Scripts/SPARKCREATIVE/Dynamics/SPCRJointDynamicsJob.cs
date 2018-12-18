@@ -420,7 +420,7 @@ public unsafe class SPCRJointDynamicsJob {
 				Collider* pCollider = pColliders + i;
 				ColliderEx* pColliderEx = pColliderExs + i;
 
-				if (CollisionDetection(pCollider, pColliderEx, RWptA->Position, RWptB->Position, out Vector3 pointOnLine, out Vector3 pointOnCollider)) {
+				if (HitTest(pCollider, pColliderEx, RWptA->Position, RWptB->Position, out Vector3 pointOnLine, out Vector3 pointOnCollider)) {
 					var Pushout = pointOnLine - pointOnCollider;
 					var PushoutDistance = Pushout.magnitude;
 
@@ -442,7 +442,7 @@ public unsafe class SPCRJointDynamicsJob {
 			RWptB->Friction = Mathf.Max(Friction, RWptB->Friction);
 		}
 
-		static bool CollisionDetection(Collider* pCollider, ColliderEx* pColliderEx, Vector3 point1, Vector3 point2, out Vector3 pointOnLine, out Vector3 pointOnCollider) {
+		static bool HitTest(Collider* pCollider, ColliderEx* pColliderEx, Vector3 point1, Vector3 point2, out Vector3 pointOnLine, out Vector3 pointOnCollider) {
 			if (pCollider->IsSphere) {
 				var direction = point2 - point1;
 				var directionLength = direction.magnitude;
