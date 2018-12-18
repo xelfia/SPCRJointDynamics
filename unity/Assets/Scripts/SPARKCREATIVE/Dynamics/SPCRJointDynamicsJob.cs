@@ -683,7 +683,7 @@ public unsafe class SPCRJointDynamicsJob {
 			var pR = pRPoints + index;
 			var pRW = pRWPoints + index;
 
-			transform.localRotation = /*Quaternion.identity * */ pR->LocalRotation;
+			transform.localRotation = pR->LocalRotation;
 			if (pR->Child != -1) {
 				var pRWC = pRWPoints + pR->Child;
 				var Direction = pRWC->Position - pRW->Position;
