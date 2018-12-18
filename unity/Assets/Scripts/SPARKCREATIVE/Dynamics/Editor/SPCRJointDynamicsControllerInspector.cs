@@ -163,8 +163,11 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 				break;
 			case 3:
 				Titlebar("デバッグ表示", new Color(0.7f, 1.0f, 1.0f));
+				GUI.color = Color.green;
 				controller._IsDebugDraw_StructuralVertical = EditorGUILayout.Toggle("垂直構造", controller._IsDebugDraw_StructuralVertical);
+				GUI.color = Color.red;
 				controller._IsDebugDraw_StructuralHorizontal = EditorGUILayout.Toggle("水平構造", controller._IsDebugDraw_StructuralHorizontal);
+				GUI.color = Color.white;
 				break;
 			case 4:
 				Titlebar("事前設定", new Color(1.0f, 1.0f, 0.7f));
@@ -220,12 +223,12 @@ public class SPCRJointDynamicsControllerInspector : Editor {
 		serializedObject.ApplyModifiedProperties();
 	}
 
-	void UpdateJointConnection(SPCRJointDynamicsController controller) {
+	private static void UpdateJointConnection(SPCRJointDynamicsController controller) {
 		controller.UpdateJointConnection();
 		SceneView.RepaintAll();
 	}
 
-	void Titlebar(string text, Color color) {
+	private static void Titlebar(string text, Color color) {
 		GUILayout.Space(12);
 
 		var backgroundColor = GUI.backgroundColor;
