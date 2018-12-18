@@ -359,7 +359,7 @@ public unsafe class SPCRJointDynamicsJob {
 			var WeightA = RptA->Weight;
 			var WeightB = RptB->Weight;
 
-			if ((WeightA == 0.0) && (WeightB == 0.0))
+			if ((WeightA == 0.0f) && (WeightB == 0.0f))
 				return;
 
 			var RWptA = pRWPoints + constraint->IndexA;
