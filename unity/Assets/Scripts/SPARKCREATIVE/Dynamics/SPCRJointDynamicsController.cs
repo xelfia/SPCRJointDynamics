@@ -667,7 +667,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		Gizmos.color = Color.magenta;
 		_Job.DrawGizmos_Points();
 
-		if (Application.isPlaying) {
+		if (Application.IsPlaying(gameObject)) {
 			if (_IsDebugDraw_StructuralVertical) {
 				Gizmos.color = Color.green;
 				for (int i = 0; i < _ConstraintsStructuralVertical.Length; i++) {
