@@ -308,7 +308,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		// All Points
 		var HorizontalRootCount = _RootPointTable.Length;
 
-		// Compute PointParameter
+		// Compute Each Point Parameter
 		{
 			_MaxPointDepth = 0;
 			for (int i = 0; i < HorizontalRootCount; ++i) {
@@ -333,7 +333,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintHorizontal(
-						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[i],
 						_RootPointTable[(i + 1) % HorizontalRootCount],
 						ConstraintList);
 				}
@@ -355,7 +355,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintShear(
-						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[i],
 						_RootPointTable[(i + 1) % HorizontalRootCount],
 						ConstraintList);
 				}
@@ -389,7 +389,7 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 			if (_WrapHorizontal) {
 				for (int i = 0; i < HorizontalRootCount; ++i) {
 					CreateConstraintBendingHorizontal(
-						_RootPointTable[(i + 0) % HorizontalRootCount],
+						_RootPointTable[i],
 						_RootPointTable[(i + 2) % HorizontalRootCount],
 						ConstraintList);
 				}
@@ -447,136 +447,127 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
 		List<SPCRJointDynamicsConstraint> Result) {
-		if ((PointA == null) || (PointB == null))
-			return;
-		if (PointA == PointB)
+		if (!ValidPair(PointA, PointB))
 			return;
 
 		var childPointA = GetChildJointDynamicsPoint(PointA);
 		var childPointB = GetChildJointDynamicsPoint(PointB);
 
-		if ((childPointA != null) && (childPointB != null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Structural_Horizontal, childPointA, childPointB);
-			Result.Add(constraint);
-
-			CreateConstraintHorizontal(childPointA, childPointB, Result);
-		} else if ((childPointA != null) && (childPointB == null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Structural_Horizontal, childPointA, PointB);
-			Result.Add(constraint);
-		} else if ((childPointA == null) && (childPointB != null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Structural_Horizontal, PointA, childPointB);
-			Result.Add(constraint);
+		var flags = (childPointA != null ? 1 : 0) + (childPointB != null ? 2 : 0);
+		switch (flags) {
+			case 1:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Structural_Horizontal, childPointA, PointB));
+				break;
+			case 2:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Structural_Horizontal, PointA, childPointB));
+				break;
+			case 3:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Structural_Horizontal, childPointA, childPointB));
+				CreateConstraintHorizontal(childPointA, childPointB, Result);
+				break;
 		}
 	}
 	private void CreateConstraintShear(
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
-		List<SPCRJointDynamicsConstraint> ConstraintList) {
-		if ((PointA == null) || (PointB == null))
-			return;
-		if (PointA == PointB)
+		List<SPCRJointDynamicsConstraint> Result) {
+		if (!ValidPair(PointA, PointB))
 			return;
 
 		var childPointA = GetChildJointDynamicsPoint(PointA);
-		var childPointB = GetChildJointDynamicsPoint(PointB);
 		var childPointA2 = GetChildJointDynamicsPoint(childPointA);
-		var childPointB2 = GetChildJointDynamicsPoint(childPointB);
 		var childPointA3 = GetChildJointDynamicsPoint(childPointA2);
-		var childPointB3 = GetChildJointDynamicsPoint(childPointB2);
 
 		if (childPointA != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, childPointA, PointB);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA, PointB));
 		} else if (childPointA2 != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, childPointA2, PointB);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA2, PointB));
 		} else if (childPointA3 != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, childPointA3, PointB);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, childPointA3, PointB));
 		}
 
+		var childPointB = GetChildJointDynamicsPoint(PointB);
+		var childPointB2 = GetChildJointDynamicsPoint(childPointB);
+		var childPointB3 = GetChildJointDynamicsPoint(childPointB2);
+
 		if (childPointB != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, PointA, childPointB);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB));
 		} else if (childPointB2 != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, PointA, childPointB2);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB2));
 		} else if (childPointB3 != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Shear, PointA, childPointB3);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Shear, PointA, childPointB3));
 		}
-		CreateConstraintShear(childPointA, childPointB, ConstraintList);
+		CreateConstraintShear(childPointA, childPointB, Result);
 	}
 	private void CreateConstraintBendingVertical(
 		SPCRJointDynamicsPoint Point,
-		List<SPCRJointDynamicsConstraint> ConstraintList) {
-		if (Point.transform.childCount != 1)
+		List<SPCRJointDynamicsConstraint> Result) {
+		var childA = OnlyChild(Point);
+		if (childA == null)
 			return;
-		var childA = Point.transform.GetChild(0);
-
-		if (childA.childCount != 1)
-			return;
-		var childB = childA.transform.GetChild(0);
-
-		var childPointB = childB.GetComponent<SPCRJointDynamicsPoint>();
-
+		var childPointB = OnlyChildPoint(childA);
 		if (childPointB != null) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Bending_Vertical, Point, childPointB);
-			ConstraintList.Add(constraint);
+			Result.Add(SPCRJointDynamicsConstraint.Create(
+				ConstraintType.Bending_Vertical, Point, childPointB));
 		}
-
 		var childPointA = childA.GetComponent<SPCRJointDynamicsPoint>();
 		if (childPointA != null) {
-			CreateConstraintBendingVertical(childPointA, ConstraintList);
+			CreateConstraintBendingVertical(childPointA, Result);
 		}
 	}
+	private static Transform OnlyChild(SPCRJointDynamicsPoint Point)
+		=> Point.transform.childCount != 1
+		? null
+		: Point.transform.GetChild(0);
+	private static SPCRJointDynamicsPoint OnlyChildPoint(Transform Transform)
+		=> Transform.childCount != 1
+		? null
+		: Transform.GetChild(0).GetComponent<SPCRJointDynamicsPoint>();
+
 	private void CreateConstraintBendingHorizontal(
 		SPCRJointDynamicsPoint PointA,
 		SPCRJointDynamicsPoint PointB,
 		List<SPCRJointDynamicsConstraint> Result) {
-		if ((PointA == null) || (PointB == null))
-			return;
-		if (PointA == PointB)
+		if (!ValidPair(PointA, PointB))
 			return;
 
 		var childPointA = GetChildJointDynamicsPoint(PointA);
 		var childPointB = GetChildJointDynamicsPoint(PointB);
 
-		if ((childPointA != null) && (childPointB != null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Bending_Horizontal, childPointA, childPointB);
-			Result.Add(constraint);
-
-			CreateConstraintHorizontal(childPointA, childPointB, Result);
-		} else if ((childPointA != null) && (childPointB == null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Bending_Horizontal, childPointA, PointB);
-			Result.Add(constraint);
-		} else if ((childPointA == null) && (childPointB != null)) {
-			var constraint = SPCRJointDynamicsConstraint.Create(
-				ConstraintType.Bending_Horizontal, PointA, childPointB);
-			Result.Add(constraint);
+		var flags = (childPointA != null ? 1 : 0) + (childPointB != null ? 2 : 0);
+		switch (flags) {
+			case 1:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Bending_Horizontal, childPointA, PointB));
+				break;
+			case 2:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Bending_Horizontal, PointA, childPointB));
+				break;
+			case 3:
+				Result.Add(SPCRJointDynamicsConstraint.Create(
+					ConstraintType.Bending_Horizontal, childPointA, childPointB));
+				CreateConstraintHorizontal(childPointA, childPointB, Result);
+				break;
 		}
 	}
+	private static bool ValidPair(SPCRJointDynamicsPoint PointA, SPCRJointDynamicsPoint PointB)
+		=> PointA != null && PointB != null && PointA != PointB;
 	private static bool ContainsEqualIndex(List<SPCRJointDynamicsJob.Constraint> list, SPCRJointDynamicsJob.Constraint constraint) {
 		for (int i = 0; i < list.Count; ++i) {
-			if (list[i].IndexA == constraint.IndexA)
-				return true;
-			if (list[i].IndexA == constraint.IndexB)
-				return true;
-			if (list[i].IndexB == constraint.IndexA)
-				return true;
-			if (list[i].IndexB == constraint.IndexB)
+			if (list[i].IndexA == constraint.IndexA ||
+				list[i].IndexA == constraint.IndexB ||
+				list[i].IndexB == constraint.IndexA ||
+				list[i].IndexB == constraint.IndexB)
 				return true;
 		}
 		return false;
@@ -590,7 +581,6 @@ public class SPCRJointDynamicsController : MonoBehaviour {
 				return;
 			}
 		}
-
 		ListTable.Add(new List<SPCRJointDynamicsJob.Constraint> { constraint });
 	}
 	private void CreateConstraintTable() {
